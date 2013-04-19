@@ -523,6 +523,14 @@ struct dwc3_hwparams {
 /* HWPARAMS1 */
 #define DWC3_NUM_INT(n)		(((n) & (0x3f << 15)) >> 15)
 
+/* HWPARAMS3 */
+#define DWC3_NUM_IN_EPS_MASK	(0x1f << 18)
+#define DWC3_NUM_EPS_MASK	(0x3f << 12)
+#define DWC3_NUM_EPS(p)		(((p)->hwparams3 &		\
+			(DWC3_NUM_EPS_MASK)) >> 12)
+#define DWC3_NUM_IN_EPS(p)	(((p)->hwparams3 &		\
+			(DWC3_NUM_IN_EPS_MASK)) >> 18)
+
 /* HWPARAMS7 */
 #define DWC3_RAM1_DEPTH(n)	((n) & 0xffff)
 
@@ -572,6 +580,16 @@ struct dwc3_request {
  * @setup_packet_pending: true when there's a Setup Packet in FIFO. Workaround
  * @needs_fifo_resize: not all users might want fifo resizing, flag it
  * @resize_fifos: tells us it's ok to reconfigure our TxFIFO sizes.
+<<<<<<< HEAD
+=======
+ * @isoch_delay: wValue from Set Isochronous Delay request;
+ * @u2sel: parameter from Set SEL request.
+ * @u2pel: parameter from Set SEL request.
+ * @u1sel: parameter from Set SEL request.
+ * @u1pel: parameter from Set SEL request.
+ * @num_out_eps: number of out endpoints
+ * @num_in_eps: number of in endpoints
+>>>>>>> 32c8609a407... usb: gadget: FunctionFS and SuperSpeed updates
  * @ep0_next_event: hold the next expected event
  * @ep0state: state of endpoint zero
  * @link_state: link state
@@ -589,8 +607,10 @@ struct dwc3 {
 	dma_addr_t		ep0_trb_addr;
 	dma_addr_t		ep0_bounce_addr;
 	struct dwc3_request	ep0_usb_req;
+
 	/* device lock */
 	spinlock_t		lock;
+
 	struct device		*dev;
 
 	struct platform_device	*xhci;
@@ -634,6 +654,13 @@ struct dwc3 {
 	enum dwc3_device_state	dev_state;
 
 	u8			speed;
+<<<<<<< HEAD
+=======
+
+	u8			num_out_eps;
+	u8			num_in_eps;
+
+>>>>>>> 32c8609a407... usb: gadget: FunctionFS and SuperSpeed updates
 	void			*mem;
 
 	struct dwc3_hwparams	hwparams;

@@ -759,6 +759,11 @@ static struct audio_dev _audio_dev = {
 		.set_alt = audio_set_alt,
 		.setup = audio_setup,
 		.disable = audio_disable,
+<<<<<<< HEAD
+=======
+		.fs_descriptors = fs_audio_desc,
+		.hs_descriptors = hs_audio_desc,
+>>>>>>> 32c8609a407... usb: gadget: FunctionFS and SuperSpeed updates
 	},
 	.lock = __SPIN_LOCK_UNLOCKED(_audio_dev.lock),
 	.idle_reqs = LIST_HEAD_INIT(_audio_dev.idle_reqs),
