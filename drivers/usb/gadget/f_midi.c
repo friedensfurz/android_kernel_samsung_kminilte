@@ -414,8 +414,8 @@ static void f_midi_unbind(struct usb_configuration *c, struct usb_function *f)
 	if (card)
 		snd_card_free_when_closed(card);
 
-	usb_free_descriptors(f->descriptors);
-	usb_free_descriptors(f->hs_descriptors);
+	usb_free_all_descriptors(f);
+	kfree(midi);
 }
 
 static int f_midi_snd_free(struct snd_device *device)
@@ -1025,4 +1025,3 @@ static void f_midi_cleanup(void)
 		kfree(_midi->in_port[i]);
 	kfree(_midi);
 }
-
