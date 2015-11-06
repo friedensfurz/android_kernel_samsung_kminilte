@@ -30,11 +30,12 @@
 #include <linux/mempolicy.h>
 #include <linux/vmalloc.h>
 #include <linux/security.h>
-#include <linux/backing-dev.h>
 #include <linux/memcontrol.h>
+#include <linux/backing-dev.h>
 #include <linux/syscalls.h>
 #include <linux/hugetlb.h>
 #include <linux/gfp.h>
+#include <trace/events/kmem.h>
 
 #include <asm/tlbflush.h>
 
@@ -295,9 +296,9 @@ static int migrate_page_move_mapping(struct address_space *mapping,
 		struct page *newpage, struct page *page,
 		struct buffer_head *head, enum migrate_mode mode)
 {
+	int expected_count;
 	struct zone *oldzone, *newzone;
 	int dirty;
-	int expected_count;
 	void **pslot;
 
 	if (!mapping) {
@@ -464,7 +465,6 @@ void migrate_page_copy(struct page *newpage, struct page *page)
 		SetPageChecked(newpage);
 	if (PageMappedToDisk(page))
 		SetPageMappedToDisk(newpage);
-
 
 	/* Move dirty on pages not done by migrate_page_move_mapping() */
 	if (PageDirty(page))
@@ -999,12 +999,14 @@ int migrate_pages(struct list_head *from,
 {
 	int retry = 1;
 	int nr_failed = 0;
+	int nr_succeeded = 0;
 	int pass = 0;
 	struct page *page;
 	struct page *page2;
 	int swapwrite = current->flags & PF_SWAPWRITE;
 	int rc;
 
+	trace_migrate_pages_start(mode);
 	if (!swapwrite)
 		current->flags |= PF_SWAPWRITE;
 
@@ -1023,8 +1025,10 @@ int migrate_pages(struct list_head *from,
 				goto out;
 			case -EAGAIN:
 				retry++;
+				trace_migrate_retry(retry);
 				break;
 			case 0:
+				nr_succeeded++;
 				break;
 			default:
 				/* Permanent failure */
@@ -1035,9 +1039,14 @@ int migrate_pages(struct list_head *from,
 	}
 	rc = 0;
 out:
+	if (nr_succeeded)
+		count_vm_events(PGMIGRATE_SUCCESS, nr_succeeded);
+	if (nr_failed)
+		count_vm_events(PGMIGRATE_FAIL, nr_failed);
 	if (!swapwrite)
 		current->flags &= ~PF_SWAPWRITE;
 
+	trace_migrate_pages_end(mode);
 	if (rc)
 		return rc;
 
