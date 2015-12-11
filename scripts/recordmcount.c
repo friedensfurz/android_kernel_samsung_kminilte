@@ -269,6 +269,21 @@ static void write_file(const char *fname)
 		perror(fname);
 		fail_file();
 	}
+	if (sb.st_nlink != 1) {
+		/* file is hard-linked, break the hard link */
+		close(fd_map);
+		if (unlink(fname) < 0) {
+			perror(fname);
+			fail_file();
+		}
+		fd_map = open(fname, O_RDWR | O_CREAT, sb.st_mode);
+		if (fd_map < 0) {
+			perror(fname);
+			fail_file();
+		}
+		uwrite(fd_map, addr, sb.st_size);
+	}
+	return addr;
 }
 
 /* w8rev, w8nat, ...: Handle endianness. */
@@ -556,5 +571,3 @@ main(int argc, char *argv[])
 	}
 	return !!n_error;
 }
-
-
