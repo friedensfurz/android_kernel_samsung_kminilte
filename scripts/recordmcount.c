@@ -269,21 +269,50 @@ static void write_file(const char *fname)
 		perror(fname);
 		fail_file();
 	}
-	if (sb.st_nlink != 1) {
-		/* file is hard-linked, break the hard link */
-		close(fd_map);
-		if (unlink(fname) < 0) {
-			perror(fname);
-			fail_file();
-		}
-		fd_map = open(fname, O_RDWR | O_CREAT, sb.st_mode);
-		if (fd_map < 0) {
-			perror(fname);
-			fail_file();
-		}
-		uwrite(fd_map, addr, sb.st_size);
+	close(fd_map);
+
+	file_end = file_map + sb.st_size;
+
+	return file_map;
+}
+
+static void write_file(const char *fname)
+{
+	char tmp_file[strlen(fname) + 4];
+	size_t n;
+
+	if (!file_updated)
+		return;
+
+	sprintf(tmp_file, "%s.rc", fname);
+
+	/*
+	 * After reading the entire file into memory, delete it
+	 * and write it back, to prevent weird side effects of modifying
+	 * an object file in place.
+	 */
+	fd_map = open(tmp_file, O_WRONLY | O_TRUNC | O_CREAT, sb.st_mode);
+	if (fd_map < 0) {
+		perror(fname);
+		fail_file();
 	}
-	return addr;
+	n = write(fd_map, file_map, sb.st_size);
+	if (n != sb.st_size) {
+		perror("write");
+		fail_file();
+	}
+	if (file_append_size) {
+		n = write(fd_map, file_append, file_append_size);
+		if (n != file_append_size) {
+			perror("write");
+			fail_file();
+		}
+	}
+	close(fd_map);
+	if (rename(tmp_file, fname) < 0) {
+		perror(fname);
+		fail_file();
+	}
 }
 
 /* w8rev, w8nat, ...: Handle endianness. */
@@ -561,7 +590,7 @@ main(int argc, char *argv[])
 			do_file(file);
 			break;
 		case SJ_FAIL:    /* error in do_file or below */
-			fprintf(stderr, "%s: failed\n", file);
+			sprintf("%s: failed\n", file);
 			++n_error;
 			break;
 		case SJ_SUCCEED:    /* premature success */
