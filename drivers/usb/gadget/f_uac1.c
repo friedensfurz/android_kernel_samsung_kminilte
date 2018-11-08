@@ -630,13 +630,7 @@ f_audio_bind(struct usb_configuration *c, struct usb_function *f)
 	struct usb_composite_dev *cdev = c->cdev;
 	struct f_audio		*audio = func_to_audio(f);
 	int			status;
-<<<<<<< HEAD
 	struct usb_ep		*ep;
-=======
-	struct usb_ep		*ep = NULL;
-	u8			epaddr;
-
->>>>>>> 32c8609a407... usb: gadget: FunctionFS and SuperSpeed updates
 
 	f_audio_build_desc(audio);
 
@@ -667,7 +661,6 @@ f_audio_bind(struct usb_configuration *c, struct usb_function *f)
 	/* copy descriptors, and track endpoint copies */
 	f->descriptors = usb_copy_descriptors(f_audio_desc);
 
-<<<<<<< HEAD
 	/*
 	 * support all relevant hardware speeds... we expect that when
 	 * hardware is dual speed, all bulk-capable endpoints work at
@@ -682,17 +675,6 @@ f_audio_bind(struct usb_configuration *c, struct usb_function *f)
 
 fail:
 
-=======
-	/* copy descriptors, and track endpoint copies */
-	status = usb_assign_descriptors(f, f_audio_desc, f_audio_desc, NULL);
-	if (status)
-		goto fail;
-	return 0;
-
-fail:
-	if (ep)
-		ep->driver_data = NULL;
->>>>>>> 32c8609a407... usb: gadget: FunctionFS and SuperSpeed updates
 	return status;
 }
 
@@ -701,7 +683,8 @@ f_audio_unbind(struct usb_configuration *c, struct usb_function *f)
 {
 	struct f_audio		*audio = func_to_audio(f);
 
-	usb_free_all_descriptors(f);
+	usb_free_descriptors(f->descriptors);
+	usb_free_descriptors(f->hs_descriptors);
 	kfree(audio);
 }
 

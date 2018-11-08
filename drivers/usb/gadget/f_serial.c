@@ -213,40 +213,14 @@ gser_bind(struct usb_configuration *c, struct usb_function *f)
 	gser->port.out = ep;
 	ep->driver_data = cdev;	/* claim */
 
-<<<<<<< HEAD
 	/* copy descriptors, and track endpoint copies */
 	f->descriptors = usb_copy_descriptors(gser_fs_function);
-=======
-#ifdef CONFIG_MODEM_SUPPORT
-	ep = usb_ep_autoconfig(cdev->gadget, &gser_fs_notify_desc);
-	if (!ep)
-		goto fail;
-	gser->notify = ep;
-	ep->driver_data = cdev;	/* claim */
-	/* allocate notification */
-	gser->notify_req = gs_alloc_req(ep,
-			sizeof(struct usb_cdc_notification) + 2,
-			GFP_KERNEL);
-	if (!gser->notify_req)
-		goto fail;
-
-	gser->notify_req->complete = gser_notify_complete;
-	gser->notify_req->context = gser;
-#endif
->>>>>>> 32c8609a407... usb: gadget: FunctionFS and SuperSpeed updates
 
 	/* support all relevant hardware speeds... we expect that when
 	 * hardware is dual speed, all bulk-capable endpoints work at
 	 * both speeds
 	 */
-	gser_hs_in_desc.bEndpointAddress = gser_fs_in_desc.bEndpointAddress;
-	gser_hs_out_desc.bEndpointAddress = gser_fs_out_desc.bEndpointAddress;
-
-	gser_ss_in_desc.bEndpointAddress = gser_fs_in_desc.bEndpointAddress;
-	gser_ss_out_desc.bEndpointAddress = gser_fs_out_desc.bEndpointAddress;
-
 	if (gadget_is_dualspeed(c->cdev->gadget)) {
-<<<<<<< HEAD
 		gser_hs_in_desc.bEndpointAddress =
 				gser_fs_in_desc.bEndpointAddress;
 		gser_hs_out_desc.bEndpointAddress =
@@ -265,24 +239,8 @@ gser_bind(struct usb_configuration *c, struct usb_function *f)
 		f->ss_descriptors = usb_copy_descriptors(gser_ss_function);
 		if (!f->ss_descriptors)
 			goto fail;
-=======
-#ifdef CONFIG_MODEM_SUPPORT
-		gser_hs_notify_desc.bEndpointAddress =
-				gser_fs_notify_desc.bEndpointAddress;
-#endif
-	}
-	if (gadget_is_superspeed(c->cdev->gadget)) {
-#ifdef CONFIG_MODEM_SUPPORT
-		gser_ss_notify_desc.bEndpointAddress =
-				gser_fs_notify_desc.bEndpointAddress;
-#endif
->>>>>>> 32c8609a407... usb: gadget: FunctionFS and SuperSpeed updates
 	}
 
-	status = usb_assign_descriptors(f, gser_fs_function, gser_hs_function,
-			gser_ss_function);
-	if (status)
-		goto fail;
 	DBG(cdev, "generic ttyGS%d: %s speed IN/%s OUT/%s\n",
 			gser->port_num,
 			gadget_is_superspeed(c->cdev->gadget) ? "super" :
@@ -291,17 +249,6 @@ gser_bind(struct usb_configuration *c, struct usb_function *f)
 	return 0;
 
 fail:
-<<<<<<< HEAD
-=======
-#ifdef CONFIG_MODEM_SUPPORT
-	if (gser->notify_req)
-		gs_free_req(gser->notify, gser->notify_req);
-
-	/* we might as well release our claims on endpoints */
-	if (gser->notify)
-		gser->notify->driver_data = NULL;
-#endif
->>>>>>> 32c8609a407... usb: gadget: FunctionFS and SuperSpeed updates
 	/* we might as well release our claims on endpoints */
 	if (gser->port.out)
 		gser->port.out->driver_data = NULL;
@@ -316,21 +263,11 @@ fail:
 static void
 gser_unbind(struct usb_configuration *c, struct usb_function *f)
 {
-<<<<<<< HEAD
 	if (gadget_is_dualspeed(c->cdev->gadget))
 		usb_free_descriptors(f->hs_descriptors);
 	if (gadget_is_superspeed(c->cdev->gadget))
 		usb_free_descriptors(f->ss_descriptors);
 	usb_free_descriptors(f->descriptors);
-=======
-#ifdef CONFIG_MODEM_SUPPORT
-	struct f_gser *gser = func_to_gser(f);
-#endif
-	usb_free_all_descriptors(f);
-#ifdef CONFIG_MODEM_SUPPORT
-	gs_free_req(gser->notify, gser->notify_req);
-#endif
->>>>>>> 32c8609a407... usb: gadget: FunctionFS and SuperSpeed updates
 	kfree(func_to_gser(f));
 }
 

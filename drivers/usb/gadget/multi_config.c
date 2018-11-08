@@ -172,7 +172,7 @@ int change_conf(struct usb_function *f,
 	if (speed == USB_SPEED_HIGH)
 		descriptors = f->hs_descriptors;
 	else
-		descriptors = f->fs_descriptors;
+		descriptors = f->descriptors;
 	if (!descriptors) {
 		USB_DBG_ESS("descriptor is not available\n");
 		return -EFAULT;
@@ -213,7 +213,7 @@ int change_conf(struct usb_function *f,
 		if (speed == USB_SPEED_HIGH)
 			descriptors = f->hs_descriptors;
 		else
-			descriptors = f->fs_descriptors;
+			descriptors = f->descriptors;
 		status = usb_descriptor_fillbuf(
 				next, len,
 				(const struct usb_descriptor_header **)
